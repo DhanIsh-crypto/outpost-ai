@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OUTPOST AI - AI-Powered Freelancer Outreach Platform</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='60' font-weight='900' text-anchor='middle' fill='white'>O</text></svg>">
+</head>
+<body>
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="{{ url_for('landing') }}" class="brand">
+        <span class="brand-logo">O</span>
+        <span>OUTPOST <strong>AI</strong></span>
+      </a>
+      <div class="nav-links">
+        <button class="nav-toggle" data-toggle-dark title="Toggle dark mode">&#9681;</button>
+        <a href="{{ url_for('login') }}" class="btn btn-ghost">Sign in</a>
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Get started</a>
+      </div>
+    </div>
+  </nav>
+
+  <section class="landing-hero">
+    <div class="badge" style="margin-bottom:16px;">AI-Powered &middot; Black &amp; White &middot; Built for Freelancers</div>
+    <h1>Find clients. Book meetings.<br>Close deals. On autopilot.</h1>
+    <p>OUTPOST AI combines lead discovery, AI-personalized outreach, automated follow-ups and meeting booking into one minimalist, monochrome workspace — built for freelancers and the companies that hire them.</p>
+    <div class="landing-cta">
+      <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Start free</a>
+      <a href="{{ url_for('login') }}" class="btn btn-lg">I have an account</a>
+    </div>
+    <p class="text-muted small mt-4">Demo &mdash; Client: <code>alex@outpost.ai</code> &middot; Provider: <code>jordan@outpost.ai</code> &middot; Password: <code>password</code></p>
+  </section>
+
+  <section class="landing-features">
+    <div class="feature-card">
+      <div class="feature-icon">F</div>
+      <h3>Client Finder</h3>
+      <p>Search LinkedIn-style by title, company size, industry, location and keywords. Save leads with auto-dedup.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">L</div>
+      <h3>Lead Database</h3>
+      <p>Searchable, taggable (Hot / Warm / Cold / Follow Up / Client) with full last-interaction history.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">A</div>
+      <h3>AI Personalization</h3>
+      <p>Reads lead's LinkedIn + website, then drafts a tailored cold email and LinkedIn message you can edit.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">E</div>
+      <h3>Email Automation</h3>
+      <p>Sends, tracks opens/replies/bounces, and fires Day-3 / Day-7 / Day-14 follow-ups automatically.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">M</div>
+      <h3>Meeting Scheduler</h3>
+      <p>Positive reply? Booking link sent. Google Calendar synced. Lead moved to "Meeting Scheduled" stage.</p>
+    </div>
+    <div class="feature-card">
+      <div class="feature-icon">A</div>
+      <h3>Analytics</h3>
+      <p>Leads, emails, reply rate, positive replies, meetings, clients closed and monthly conversion rate.</p>
+    </div>
+  </section>
+
+  <section class="landing-roles">
+    <div class="landing-roles-inner">
+      <a href="{{ url_for('login') }}" class="role-card" style="text-decoration:none;">
+        <div class="badge badge-hot mb-3">Client / Freelancer</div>
+        <h3>I'm a Freelancer</h3>
+        <p>Find clients, run outreach, book calls and close retainers — all from one dashboard.</p>
+        <ul>
+          <li>Client Finder with LinkedIn-style filters</li>
+          <li>AI-personalized cold emails &amp; LinkedIn messages</li>
+          <li>Automated follow-ups at Day 3, 7, 14</li>
+          <li>Meeting scheduler + Google Calendar sync</li>
+          <li>Full analytics &amp; conversion funnel</li>
+        </ul>
+        <div class="btn btn-primary mt-4">Open Freelancer Dashboard</div>
+      </a>
+      <a href="{{ url_for('login') }}" class="role-card" style="text-decoration:none;">
+        <div class="badge badge-warm mb-3">Job Provider</div>
+        <h3>I'm Hiring Talent</h3>
+        <p>Post jobs, browse a vetted freelancer pool, manage applicants and hire faster.</p>
+        <ul>
+          <li>Post unlimited jobs by category &amp; budget</li>
+          <li>Browse freelancers by skill, rate, rating</li>
+          <li>Track applications: pending / shortlisted / hired</li>
+          <li>Hire-rate analytics by month &amp; category</li>
+          <li>Separate, role-scoped dashboard</li>
+        </ul>
+        <div class="btn btn-primary mt-4">Open Provider Dashboard</div>
+      </a>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <strong>OUTPOST AI</strong> &middot; AI-Powered Freelancer Outreach Platform &middot; Built with Flask + MySQL
+  </footer>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

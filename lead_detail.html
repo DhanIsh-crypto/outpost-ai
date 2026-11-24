@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}{{ lead.name }} - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div class="flex items-center gap-3">
+        <div class="avatar avatar-lg">{{ lead.name[0] }}</div>
+        <div>
+          <div class="page-title">{{ lead.name }}</div>
+          <div class="page-subtitle">{{ lead.title }} at {{ lead.company }}</div>
+          <div class="flex gap-2 mt-2">
+            <span class="badge
+              {%- if lead.tag == 'Hot Lead' %} badge-hot
+              {%- elif lead.tag == 'Warm Lead' %} badge-warm
+              {%- elif lead.tag == 'Client' %} badge-client
+              {%- elif lead.tag == 'Follow Up Needed' %} badge-followup
+              {%- else %} badge-cold{%- endif %}">{{ lead.tag }}</span>
+            <span class="badge-stage">{{ lead.stage }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <a href="{{ url_for('ai_personalize') }}?lead_id={{ lead.id }}" class="btn btn-primary">AI Personalize</a>
+        <a href="{{ url_for('client_leads') }}" class="btn">&larr; Back</a>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-title">Profile</div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Company</div><div class="list-item-sub">{{ lead.company or '-' }}</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Industry</div><div class="list-item-sub">{{ lead.industry or '-' }}</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Company size</div><div class="list-item-sub">{{ lead.company_size or '-' }}</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Location</div><div class="list-item-sub">{{ lead.location or '-' }}</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Email</div><div class="list-item-sub">{{ lead.email or '-' }}</div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">LinkedIn</div><div class="list-item-sub"><a href="https://{{ lead.linkedin }}" target="_blank">{{ lead.linkedin or '-' }}</a></div></div>
+        </div>
+        <div class="list-item">
+          <div class="list-item-body"><div class="list-item-title">Website</div><div class="list-item-sub"><a href="https://{{ lead.website }}" target="_blank">{{ lead.website or '-' }}</a></div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Last interaction</div>
+        <p class="text-soft">{{ lead.last_interaction or 'No interactions yet.' }}</p>
+        {% if lead.last_interaction_at %}
+        <p class="small text-muted mt-2">{{ lead.last_interaction_at.strftime('%B %d, %Y at %I:%M %p') }}</p>
+        {% endif %}
+        <hr style="border:none;border-top:1px solid var(--border);margin:20px 0;">
+        <div class="card-title">Stage</div>
+        <p>{{ lead.stage }}</p>
+        <div class="progress mt-2">
+          <div class="progress-bar" data-fill="{{ (STAGES.index(lead.stage) / (STAGES|length - 1) * 100) if lead.stage in STAGES else 0 }}"></div>
+        </div>
+        <div class="flex justify-between text-muted small mt-2">
+          {% for s in STAGES %}<span {% if s == lead.stage %}style="font-weight:700;color:var(--text);"{% endif %}>{{ s }}</span>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">Email &amp; message history</div>
+      {% if emails %}
+        {% for e in emails %}
+        <div class="list-item">
+          <div class="avatar avatar-sm" style="background:var(--bg-soft);color:var(--text);">&#9993;</div>
+          <div class="list-item-body">
+            <div class="list-item-title">{{ e.subject }}
+              {% if e.is_followup %}<span class="badge badge-cold">Day {{ e.followup_day }} follow-up</span>{% endif %}
+            </div>
+            <div class="list-item-sub">via {{ e.channel }} &middot; {{ e.sent_at.strftime('%b %d, %Y %I:%M %p') }}</div>
+          </div>
+          <div class="list-item-meta">
+            <span class="badge
+              {%- if e.status == 'replied' %} badge-hot
+              {%- elif e.status == 'opened' %} badge-warm
+              {%- elif e.status == 'bounced' %} badge-followup
+              {%- else %} badge-cold{%- endif %}">{{ e.status|title }}</span>
+            {% if e.is_positive %}<span class="badge badge-hot">Positive</span>{% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state">
+          <div class="empty-state-icon">&#9993;</div>
+          <div class="empty-state-text">No emails yet. <a href="{{ url_for('ai_personalize') }}?lead_id={{ lead.id }}">Generate one with AI</a>.</div>
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">Meetings</div>
+      {% if meetings %}
+        {% for m in meetings %}
+        <div class="list-item">
+          <div class="avatar avatar-sm">&#128197;</div>
+          <div class="list-item-body">
+            <div class="list-item-title">{{ m.title }}</div>
+            <div class="list-item-sub">{{ m.scheduled_at.strftime('%a, %b %d at %I:%M %p') }} &middot; {{ m.duration_min }} min</div>
+          </div>
+          <div class="list-item-meta">
+            <span class="badge">{{ m.status|title }}</span>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state"><div class="empty-state-text">No meetings booked yet.</div></div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

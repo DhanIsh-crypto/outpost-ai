@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+{% block title %}Lead Database - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Lead Database</div>
+        <div class="page-subtitle">{{ leads|length }} leads &middot; searchable, taggable, dedup-enabled.</div>
+      </div>
+      <a href="{{ url_for('client_finder') }}" class="btn btn-primary">+ Add lead</a>
+    </div>
+
+    <div class="card-grid cols-5 mb-4">
+      {% for t in TAGS %}
+      <div class="stat-card">
+        <div class="stat-label">{{ t }}</div>
+        <div class="stat-value" style="font-size:22px;">{{ counts[t] }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="card mb-4">
+      <form method="GET" action="{{ url_for('client_leads') }}" class="form-inline">
+        <div class="form-group" style="flex:1;min-width:200px;">
+          <label class="form-label">Search</label>
+          <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Name, company, email, title...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tag</label>
+          <select name="tag" class="form-control">
+            <option value="">All</option>
+            {% for t in TAGS %}<option value="{{ t }}" {{ 'selected' if tag == t }}>{{ t }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stage</label>
+          <select name="stage" class="form-control">
+            <option value="">All</option>
+            {% for s in STAGES %}<option value="{{ s }}" {{ 'selected' if stage == s }}>{{ s }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Sort</label>
+          <select name="sort" class="form-control">
+            <option value="newest" {{ 'selected' if sort == 'newest' }}>Newest</option>
+            <option value="oldest" {{ 'selected' if sort == 'oldest' }}>Oldest</option>
+            <option value="company" {{ 'selected' if sort == 'company' }}>Company A-Z</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filter</button>
+        <a href="{{ url_for('client_leads') }}" class="btn">Reset</a>
+      </form>
+    </div>
+
+    <div class="card">
+      {% if leads %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Company</th><th>Industry</th><th>Location</th>
+              <th>Tag</th><th>Stage</th><th>Last interaction</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for lead in leads %}
+            <tr>
+              <td>
+                <a href="{{ url_for('lead_detail', lid=lead.id) }}" style="font-weight:600;color:var(--text);">
+                  <div class="flex items-center gap-2">
+                    <div class="avatar avatar-sm">{{ lead.name[0] }}</div>
+                    <div>
+                      <div>{{ lead.name }}</div>
+                      <div class="small text-muted">{{ lead.title }}</div>
+                    </div>
+                  </div>
+                </a>
+              </td>
+              <td>{{ lead.company or '-' }}<br><span class="small text-muted">{{ lead.company_size or '' }}</span></td>
+              <td>{{ lead.industry or '-' }}</td>
+              <td>{{ lead.location or '-' }}</td>
+              <td>
+                <form method="POST" action="{{ url_for('update_lead_tag', lid=lead.id) }}" style="display:inline;">
+                  <select name="tag" onchange="this.form.submit()" class="form-control"
+                          style="padding:4px 8px;font-size:11px;width:auto;display:inline-block;
+                          background:
+                          {%- if lead.tag == 'Hot Lead' %}var(--accent);color:var(--bg)
+                          {%- elif lead.tag == 'Warm Lead' %}var(--bg);color:var(--text);border:1px solid var(--text)
+                          {%- elif lead.tag == 'Client' %}var(--bg);border:1px solid var(--accent)
+                          {%- elif lead.tag == 'Follow Up Needed' %}var(--text);color:var(--bg)
+                          {%- else %}var(--bg-soft);color:var(--text-muted){%- endif %};">
+                    {% for t in TAGS %}
+                      <option value="{{ t }}" {{ 'selected' if lead.tag == t }}>{{ t }}</option>
+                    {% endfor %}
+                  </select>
+                </form>
+              </td>
+              <td><span class="badge-stage">{{ lead.stage }}</span></td>
+              <td>
+                <div class="small text-soft">{{ lead.last_interaction or '-' }}</div>
+                {% if lead.last_interaction_at %}
+                <div class="small text-muted">{{ lead.last_interaction_at.strftime('%b %d, %Y') }}</div>
+                {% endif %}
+              </td>
+              <td>
+                <a href="{{ url_for('lead_detail', lid=lead.id) }}" class="btn btn-ghost btn-sm">View</a>
+                <form method="POST" action="{{ url_for('delete_lead', lid=lead.id) }}"
+                      style="display:inline;" onsubmit="return confirm('Delete this lead?');">
+                  <button type="submit" class="btn btn-ghost btn-sm">&times;</button>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">&#9783;</div>
+        <div class="empty-state-text">No leads match your filters. <a href="{{ url_for('client_finder') }}">Find new leads</a>.</div>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

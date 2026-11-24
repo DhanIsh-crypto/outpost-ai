@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Meetings - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Meeting Scheduler</div>
+        <div class="page-subtitle">Send booking links, sync with Google Calendar, auto-move leads to "Meeting Scheduled".</div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-title">Book a meeting</div>
+        <p class="text-soft small mb-3">When a lead replies positively, pick a time and a meeting is created, your Calendly link is shared and a Google Calendar event is generated.</p>
+        <form method="POST" action="{{ url_for('book_meeting') }}">
+          <div class="form-group">
+            <label class="form-label">Lead</label>
+            <select name="lead_id" class="form-control" required>
+              <option value="">Select lead...</option>
+              {% for lead in current_user.leads %}
+              <option value="{{ lead.id }}">{{ lead.name }} &mdash; {{ lead.company }} ({{ lead.stage }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Proposed time</label>
+            <input type="datetime-local" name="scheduled_at" class="form-control" required>
+          </div>
+          <button type="submit" class="btn btn-primary">&#128197; Book &amp; sync calendar</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Calendar sync</div>
+        <div class="list-item">
+          <div class="avatar avatar-sm" style="background:var(--bg);border:1px solid var(--accent);color:var(--accent);">&#128197;</div>
+          <div class="list-item-body">
+            <div class="list-item-title">Google Calendar</div>
+            <div class="list-item-sub">Connected &middot; alex.morgan@gmail.com</div>
+          </div>
+          <span class="badge badge-hot">Connected</span>
+        </div>
+        <div class="list-item">
+          <div class="avatar avatar-sm" style="background:var(--bg);border:1px solid var(--accent);color:var(--accent);">&#128279;</div>
+          <div class="list-item-body">
+            <div class="list-item-title">Calendly</div>
+            <div class="list-item-sub">calendly.com/alexmorgan/30min</div>
+          </div>
+          <span class="badge badge-hot">Active</span>
+        </div>
+        <div class="alert alert-info mt-3" style="margin-bottom:0;">
+          New meetings create a Google Calendar event with a Meet link. Lead stage auto-updates to <strong>Meeting Scheduled</strong>.
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">All meetings</div>
+      {% if meetings %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Lead</th><th>Title</th><th>Scheduled</th><th>Duration</th><th>Status</th><th>Booking link</th><th></th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in meetings %}
+            <tr>
+              <td>
+                <div class="flex items-center gap-2">
+                  <div class="avatar avatar-sm">{{ m.lead.name[0] }}</div>
+                  <div>
+                    <div style="font-weight:600;">{{ m.lead.name }}</div>
+                    <div class="small text-muted">{{ m.lead.company }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ m.title }}</td>
+              <td class="small">{{ m.scheduled_at.strftime('%a, %b %d, %I:%M %p') }}</td>
+              <td>{{ m.duration_min }} min</td>
+              <td>
+                <span class="badge
+                  {%- if m.status == 'completed' %} badge-hot
+                  {%- elif m.status == 'cancelled' %} badge-followup
+                  {%- else %} badge-warm{%- endif %}">{{ m.status|title }}</span>
+              </td>
+              <td><a href="https://{{ m.booking_link }}" target="_blank" class="small">calendly.com/...</a></td>
+              <td>
+                {% if m.status == 'scheduled' %}
+                <form method="POST" action="{{ url_for('close_meeting', mid=m.id) }}"
+                      onsubmit="return confirm('Mark as completed and move {{ m.lead.name }} to Client?');">
+                  <button type="submit" class="btn btn-primary btn-sm">Close as client</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">&#128197;</div>
+        <div class="empty-state-text">No meetings yet. Book your first call using the form on the left.</div>
+      </div>
+      {% endif %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

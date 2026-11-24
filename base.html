@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ APP_NAME }} - {{ APP_TAGLINE }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text x='50' y='68' font-size='60' font-weight='900' text-anchor='middle' fill='white'>O</text></svg>">
+</head>
+<body>
+  {% if current_user.is_authenticated %}
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="{{ url_for('landing') }}" class="brand">
+        <span class="brand-logo">O</span>
+        <span>OUTPOST <strong>AI</strong></span>
+      </a>
+      <div class="nav-search">
+        <input type="text" placeholder="Search leads, jobs, people...">
+      </div>
+      <div class="nav-links">
+        {% if current_user.role == 'client' %}
+          <a href="{{ url_for('client_dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'client_dashboard' }}">
+            <span class="nav-icon">&#9632;</span><span>Home</span></a>
+          <a href="{{ url_for('client_finder') }}" class="nav-link {{ 'active' if 'finder' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#128269;</span><span>Find</span></a>
+          <a href="{{ url_for('client_leads') }}" class="nav-link {{ 'active' if 'leads' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#9783;</span><span>Leads</span></a>
+          <a href="{{ url_for('client_email_automation') }}" class="nav-link {{ 'active' if 'email' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#9993;</span><span>Emails</span></a>
+          <a href="{{ url_for('client_analytics') }}" class="nav-link {{ 'active' if 'analytics' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#9776;</span><span>Analytics</span></a>
+        {% else %}
+          <a href="{{ url_for('provider_dashboard') }}" class="nav-link {{ 'active' if request.endpoint == 'provider_dashboard' }}">
+            <span class="nav-icon">&#9632;</span><span>Home</span></a>
+          <a href="{{ url_for('provider_jobs') }}" class="nav-link {{ 'active' if 'jobs' in (request.endpoint or '') or 'post_job' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#128188;</span><span>Jobs</span></a>
+          <a href="{{ url_for('find_freelancers') }}" class="nav-link {{ 'active' if 'freelancers' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#128269;</span><span>Talent</span></a>
+          <a href="{{ url_for('provider_analytics') }}" class="nav-link {{ 'active' if 'analytics' in (request.endpoint or '') }}">
+            <span class="nav-icon">&#9776;</span><span>Analytics</span></a>
+        {% endif %}
+        <button class="nav-toggle" data-toggle-dark title="Toggle dark mode">
+          &#9681;
+        </button>
+        <a href="{{ url_for('logout') }}" class="nav-avatar" title="{{ current_user.name }} ({{ current_user.role }})">
+          {{ current_user.name[0] }}
+        </a>
+      </div>
+    </div>
+  </nav>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div style="max-width:1200px;margin:16px auto 0;padding:0 24px;">
+        {% for category, msg in messages %}
+          <div class="alert alert-{{ category }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  {% block body %}{% endblock %}
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

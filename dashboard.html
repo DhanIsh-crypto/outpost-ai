@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Provider Dashboard - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "provider/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Welcome, {{ current_user.name.split()[0] }}</div>
+        <div class="page-subtitle">Hire talent faster &mdash; post jobs, browse freelancers, manage applicants.</div>
+      </div>
+      <div class="flex gap-2">
+        <a href="{{ url_for('post_job') }}" class="btn btn-primary">+ Post a job</a>
+        <a href="{{ url_for('find_freelancers') }}" class="btn">Browse talent</a>
+      </div>
+    </div>
+
+    <div class="card-grid cols-4 mb-6">
+      <div class="stat-card">
+        <div class="stat-icon">&#128188;</div>
+        <div class="stat-label">Open Jobs</div>
+        <div class="stat-value">{{ stats.open_jobs }}</div>
+        <div class="stat-delta">Accepting applicants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">&#128101;</div>
+        <div class="stat-label">Total Applicants</div>
+        <div class="stat-value">{{ stats.total_applicants }}</div>
+        <div class="stat-delta">Across all jobs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">&#9733;</div>
+        <div class="stat-label">Shortlisted</div>
+        <div class="stat-value">{{ stats.shortlisted }}</div>
+        <div class="stat-delta">Awaiting interview</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">&#10003;</div>
+        <div class="stat-label">Hired</div>
+        <div class="stat-value">{{ stats.hired }}</div>
+        <div class="stat-delta">Talent closed</div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2">
+      <div class="card">
+        <div class="card-title">
+          Recent job posts
+          <a href="{{ url_for('provider_jobs') }}" class="btn btn-ghost btn-sm">View all</a>
+        </div>
+        {% if recent_jobs %}
+          {% for job in recent_jobs %}
+          <div class="list-item">
+            <div class="avatar avatar-sm" style="background:var(--bg);border:1px solid var(--accent);color:var(--accent);">&#128188;</div>
+            <div class="list-item-body">
+              <div class="list-item-title"><a href="{{ url_for('job_detail', jid=job.id) }}">{{ job.title }}</a></div>
+              <div class="list-item-sub">{{ job.category }} &middot; {{ job.budget }} &middot; {{ job.duration }}</div>
+            </div>
+            <div class="list-item-meta">
+              <span class="badge
+                {%- if job.status == 'open' %} badge-hot
+                {%- else %} badge-cold{%- endif %}">{{ job.status|title }}</span>
+              <span class="text-muted">{{ job.applications.count() }} applicants</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state">
+            <div class="empty-state-icon">&#128188;</div>
+            <div class="empty-state-text">No jobs posted yet. <a href="{{ url_for('post_job') }}">Post your first job</a>.</div>
+          </div>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          Recent applicants
+        </div>
+        {% if recent_apps %}
+          {% for app_row in recent_apps %}
+          <div class="list-item">
+            <div class="avatar avatar-sm">{{ app_row.freelancer_name[0] }}</div>
+            <div class="list-item-body">
+              <div class="list-item-title">{{ app_row.freelancer_name }}</div>
+              <div class="list-item-sub">applied to <strong>{{ app_row.job.title }}</strong> &middot; {{ app_row.freelancer_rate }}</div>
+            </div>
+            <div class="list-item-meta">
+              <span class="badge
+                {%- if app_row.status == 'hired' %} badge-hot
+                {%- elif app_row.status == 'shortlisted' %} badge-warm
+                {%- elif app_row.status == 'rejected' %} badge-cold
+                {%- else %} badge-followup{%- endif %}">{{ app_row.status|title }}</span>
+            </div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state"><div class="empty-state-text">No applicants yet.</div></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">Quick actions</div>
+      <div class="card-grid cols-4">
+        <a href="{{ url_for('post_job') }}" class="btn btn-block">&#128188; Post a job</a>
+        <a href="{{ url_for('find_freelancers') }}" class="btn btn-block">&#128269; Find talent</a>
+        <a href="{{ url_for('provider_jobs') }}" class="btn btn-block">&#128203; Manage jobs</a>
+        <a href="{{ url_for('provider_analytics') }}" class="btn btn-block">&#9776; Analytics</a>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

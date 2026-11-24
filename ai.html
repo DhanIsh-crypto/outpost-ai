@@ -1,0 +1,149 @@
+{% extends "base.html" %}
+{% block title %}AI Personalization - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">AI Personalization</div>
+        <div class="page-subtitle">Pick a lead &mdash; we read their LinkedIn + website and draft a tailored message.</div>
+      </div>
+    </div>
+
+    <div class="card mb-6">
+      <form method="POST" action="{{ url_for('ai_personalize') }}">
+        <div class="form-row">
+          <div class="form-group" style="min-width:240px;">
+            <label class="form-label">Lead</label>
+            <select name="lead_id" class="form-control" required>
+              <option value="">Select a lead...</option>
+              {% for l in leads %}
+              <option value="{{ l.id }}" {{ 'selected' if selected_lead and selected_lead.id == l.id }}>
+                {{ l.name }} &mdash; {{ l.company }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Tone</label>
+            <select name="tone" class="form-control">
+              <option value="professional">Professional</option>
+              <option value="friendly">Friendly</option>
+              <option value="direct">Direct</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary">&#9881; Generate personalized message</button>
+      </form>
+    </div>
+
+    {% if selected_lead %}
+    <div class="card mb-6">
+      <div class="card-title">Lead context</div>
+      <div class="grid grid-3 gap-4">
+        <div>
+          <div class="text-muted small">Name</div>
+          <div style="font-weight:600;">{{ selected_lead.name }}</div>
+        </div>
+        <div>
+          <div class="text-muted small">Company</div>
+          <div style="font-weight:600;">{{ selected_lead.company }}</div>
+        </div>
+        <div>
+          <div class="text-muted small">Industry</div>
+          <div style="font-weight:600;">{{ selected_lead.industry }}</div>
+        </div>
+        <div>
+          <div class="text-muted small">LinkedIn</div>
+          <div style="font-weight:600;"><a href="https://{{ selected_lead.linkedin }}" target="_blank">{{ selected_lead.linkedin }}</a></div>
+        </div>
+        <div>
+          <div class="text-muted small">Website</div>
+          <div style="font-weight:600;"><a href="https://{{ selected_lead.website }}" target="_blank">{{ selected_lead.website }}</a></div>
+        </div>
+        <div>
+          <div class="text-muted small">Title</div>
+          <div style="font-weight:600;">{{ selected_lead.title }}</div>
+        </div>
+      </div>
+      <div class="alert alert-info mt-4" style="margin-bottom:0;">
+        <strong>AI read:</strong> Analyzed {{ selected_lead.name.split()[0] }}'s LinkedIn profile &amp; <a href="https://{{ selected_lead.website }}" target="_blank">{{ selected_lead.website }}</a>. Found a specific angle tied to {{ selected_lead.industry|lower }} &mdash; used in the draft below.
+      </div>
+    </div>
+    {% endif %}
+
+    {% if generated %}
+    <div class="card-grid cols-2" data-tabs>
+      <div></div><div></div>
+      <div class="tabs" style="grid-column: span 2;">
+        <div class="tab active" data-tab="email">Cold Email</div>
+        <div class="tab" data-tab="linkedin">LinkedIn Message</div>
+      </div>
+
+      <div data-tab-panel="email" style="grid-column: span 2;">
+        <div class="card">
+          <div class="card-title">
+            Email draft
+            <span class="text-muted small">Editable &mdash; you can refine before sending</span>
+          </div>
+          <form method="POST" action="{{ url_for('ai_send') }}">
+            <input type="hidden" name="lead_id" value="{{ selected_lead.id }}">
+            <input type="hidden" name="channel" value="email">
+            <div class="form-group">
+              <label class="form-label">Subject</label>
+              <input type="text" name="subject" class="form-control" value="{{ generated.email_subject }}">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Body</label>
+              <textarea name="body" class="form-control" rows="14">{{ generated.email_body }}</textarea>
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-primary">&#9993; Send email</button>
+              <button type="button" class="btn" onclick="navigator.clipboard.readText().then(t=>{document.querySelector('textarea[name=body]').value=t;});">Paste edit</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <div data-tab-panel="linkedin" style="grid-column: span 2;display:none;">
+        <div class="card">
+          <div class="card-title">
+            LinkedIn connection message
+            <span class="text-muted small">300 char max for connection request</span>
+          </div>
+          <form method="POST" action="{{ url_for('ai_send') }}">
+            <input type="hidden" name="lead_id" value="{{ selected_lead.id }}">
+            <input type="hidden" name="channel" value="linkedin">
+            <input type="hidden" name="subject" value="LinkedIn connection request">
+            <div class="form-group">
+              <label class="form-label">Message</label>
+              <textarea name="body" class="form-control" rows="10">{{ generated.linkedin_body }}</textarea>
+            </div>
+            <div class="flex gap-2">
+              <button type="submit" class="btn btn-primary">&#128172; Send LinkedIn message</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+    {% elif selected_lead %}
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#9881;</div>
+          <div class="empty-state-text">Click "Generate personalized message" above to draft an email + LinkedIn note for {{ selected_lead.name }}.</div>
+        </div>
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#9881;</div>
+          <div class="empty-state-text">Pick a lead to start generating personalized outreach.</div>
+        </div>
+      </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}

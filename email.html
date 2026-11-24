@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}Email Automation - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Email Automation</div>
+        <div class="page-subtitle">Send, track opens/replies/bounces, and auto-fire Day 3 / 7 / 14 follow-ups.</div>
+      </div>
+      <a href="{{ url_for('ai_personalize') }}" class="btn btn-primary">+ Compose new</a>
+    </div>
+
+    <div class="card-grid cols-5 mb-6">
+      <div class="stat-card">
+        <div class="stat-label">Sent</div>
+        <div class="stat-value">{{ stats.sent }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Opened</div>
+        <div class="stat-value">{{ stats.opened }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Replied</div>
+        <div class="stat-value">{{ stats.replied }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Bounced</div>
+        <div class="stat-value">{{ stats.bounced }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Follow-ups</div>
+        <div class="stat-value">{{ stats.followups }}</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Outbox &amp; tracking</div>
+      {% if emails %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>To</th><th>Subject</th><th>Channel</th><th>Status</th>
+              <th>Sent</th><th>Follow-up</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for e in emails %}
+            <tr>
+              <td>
+                <div class="flex items-center gap-2">
+                  <div class="avatar avatar-sm">{{ e.lead.name[0] }}</div>
+                  <div>
+                    <div style="font-weight:600;">{{ e.lead.name }}</div>
+                    <div class="small text-muted">{{ e.lead.company }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {{ e.subject }}
+                {% if e.is_followup %}<span class="badge badge-cold">Day {{ e.followup_day }}</span>{% endif %}
+                {% if e.is_positive %}<span class="badge badge-hot">Positive</span>{% endif %}
+              </td>
+              <td>{{ e.channel|title }}</td>
+              <td>
+                <span class="badge
+                  {%- if e.status == 'replied' %} badge-hot
+                  {%- elif e.status == 'opened' %} badge-warm
+                  {%- elif e.status == 'bounced' %} badge-followup
+                  {%- else %} badge-cold{%- endif %}">{{ e.status|title }}</span>
+              </td>
+              <td class="small">{{ e.sent_at.strftime('%b %d, %I:%M %p') }}</td>
+              <td>
+                {% if not e.is_followup and e.status in ('sent', 'opened') %}
+                <div class="flex gap-1">
+                  <form method="POST" action="{{ url_for('send_followup', eid=e.id) }}">
+                    <input type="hidden" name="day" value="3">
+                    <button type="submit" class="btn btn-ghost btn-sm" title="Send Day 3 follow-up">D3</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('send_followup', eid=e.id) }}">
+                    <input type="hidden" name="day" value="7">
+                    <button type="submit" class="btn btn-ghost btn-sm" title="Send Day 7 follow-up">D7</button>
+                  </form>
+                  <form method="POST" action="{{ url_for('send_followup', eid=e.id) }}">
+                    <input type="hidden" name="day" value="14">
+                    <button type="submit" class="btn btn-ghost btn-sm" title="Send Day 14 follow-up">D14</button>
+                  </form>
+                </div>
+                {% elif e.is_followup %}
+                <span class="badge badge-cold">Sent (Day {{ e.followup_day }})</span>
+                {% else %}
+                <span class="text-muted small">&mdash;</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if e.status == 'sent' %}
+                <form method="POST" action="{{ url_for('track_email', eid=e.id) }}" style="display:inline;">
+                  <input type="hidden" name="status" value="opened">
+                  <button type="submit" class="btn btn-ghost btn-sm" title="Mark as opened">Open</button>
+                </form>
+                {% endif %}
+                {% if e.status in ('sent', 'opened') %}
+                <form method="POST" action="{{ url_for('track_email', eid=e.id) }}" style="display:inline;">
+                  <input type="hidden" name="status" value="replied">
+                  <label class="small" style="margin-right:4px;"><input type="checkbox" name="is_positive"> +</label>
+                  <button type="submit" class="btn btn-ghost btn-sm" title="Mark as replied">Reply</button>
+                </form>
+                <form method="POST" action="{{ url_for('track_email', eid=e.id) }}" style="display:inline;">
+                  <input type="hidden" name="status" value="bounced">
+                  <button type="submit" class="btn btn-ghost btn-sm" title="Mark as bounced">Bounce</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state">
+        <div class="empty-state-icon">&#9993;</div>
+        <div class="empty-state-text">No emails sent yet. <a href="{{ url_for('ai_personalize') }}">Generate your first email</a>.</div>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">Follow-up schedule</div>
+      <div class="grid grid-3 gap-4">
+        <div style="padding:16px;border:1px solid var(--border);border-radius:8px;">
+          <div style="font-weight:700;">Day 3 &middot; Gentle nudge</div>
+          <p class="small text-muted mt-2">Short, friendly reminder. Floating the original thread to the top.</p>
+        </div>
+        <div style="padding:16px;border:1px solid var(--border);border-radius:8px;">
+          <div style="font-weight:700;">Day 7 &middot; Value bump</div>
+          <p class="small text-muted mt-2">Add a fresh angle: case study, idea or recent relevant news.</p>
+        </div>
+        <div style="padding:16px;border:1px solid var(--border);border-radius:8px;">
+          <div style="font-weight:700;">Day 14 &middot; Breakup email</div>
+          <p class="small text-muted mt-2">Honest close-the-loop email. Often the highest reply rate.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

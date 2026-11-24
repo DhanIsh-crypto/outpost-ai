@@ -1,0 +1,24 @@
+{# Reusable sidebar for the Job Provider dashboard #}
+<aside class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Workspace</div>
+    <a href="{{ url_for('provider_dashboard') }}" class="sidebar-link {{ 'active' if request.endpoint == 'provider_dashboard' }}">&#9632; Home</a>
+    <a href="{{ url_for('provider_jobs') }}" class="sidebar-link {{ 'active' if 'jobs' in (request.endpoint or '') or 'post_job' in (request.endpoint or '') }}">&#128188; Jobs</a>
+    <a href="{{ url_for('find_freelancers') }}" class="sidebar-link {{ 'active' if 'freelancers' in (request.endpoint or '') }}">&#128269; Find Talent</a>
+    <a href="{{ url_for('provider_analytics') }}" class="sidebar-link {{ 'active' if 'analytics' in (request.endpoint or '') }}">&#9776; Analytics</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Account</div>
+    <div style="display:flex;align-items:center;gap:10px;padding:6px 12px;">
+      <div class="avatar avatar-sm">{{ current_user.name[0] }}</div>
+      <div style="min-width:0;">
+        <div style="font-weight:600;font-size:13px;">{{ current_user.name }}</div>
+        <div class="small text-muted">{{ current_user.company or 'Hiring' }}</div>
+      </div>
+    </div>
+    <button class="nav-toggle" data-toggle-dark style="margin-top:10px;width:100%;height:32px;border-radius:6px;">
+      <span data-dark-label>Dark mode</span>
+    </button>
+    <a href="{{ url_for('logout') }}" class="btn btn-ghost btn-sm btn-block mt-3">Sign out</a>
+  </div>
+</aside>

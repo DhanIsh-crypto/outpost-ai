@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }} - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "provider/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">{{ job.title }}</div>
+        <div class="page-subtitle">{{ job.category }} &middot; {{ job.budget }} &middot; {{ job.duration }} &middot; {{ job.experience_level }}</div>
+        <div class="flex gap-2 mt-2">
+          <span class="badge
+            {%- if job.status == 'open' %} badge-hot
+            {%- else %} badge-cold{%- endif %}">{{ job.status|title }}</span>
+          <span class="badge">{{ job.applications.count() }} applicants</span>
+          <span class="badge">{{ job.location_type }}</span>
+        </div>
+      </div>
+      <a href="{{ url_for('provider_jobs') }}" class="btn">&larr; Back to jobs</a>
+    </div>
+
+    <div class="card mb-6">
+      <div class="card-title">Job description</div>
+      <p class="text-soft">{{ job.description }}</p>
+      {% if job.skills_required %}
+      <div class="mt-3">
+        <div class="small text-muted mb-2">Skills required:</div>
+        {% for skill in job.skills_required.split(',') %}
+        <span class="badge">{{ skill.strip() }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+      <div class="small text-muted mt-3">Posted {{ job.created_at.strftime('%B %d, %Y') }}</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Applicants ({{ applications|length }})</div>
+      {% if applications %}
+      <div class="table-wrap">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Freelancer</th><th>Title</th><th>Skills</th><th>Rate</th>
+              <th>Rating</th><th>Applied</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for a in applications %}
+            <tr>
+              <td>
+                <div class="flex items-center gap-2">
+                  <div class="avatar avatar-sm">{{ a.freelancer_name[0] }}</div>
+                  <div>
+                    <div style="font-weight:600;">{{ a.freelancer_name }}</div>
+                    <div class="small text-muted">{{ a.freelancer_email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>{{ a.freelancer_title }}</td>
+              <td class="small">{{ a.freelancer_skills }}</td>
+              <td>{{ a.freelancer_rate }}</td>
+              <td>&#9733; {{ a.rating }}</td>
+              <td class="small">{{ a.applied_at.strftime('%b %d') }}</td>
+              <td>
+                <span class="badge
+                  {%- if a.status == 'hired' %} badge-hot
+                  {%- elif a.status == 'shortlisted' %} badge-warm
+                  {%- elif a.status == 'rejected' %} badge-cold
+                  {%- else %} badge-followup{%- endif %}">{{ a.status|title }}</span>
+              </td>
+              <td>
+                <form method="POST" action="{{ url_for('update_application', aid=a.id) }}" style="display:inline;">
+                  <select name="status" onchange="this.form.submit()" class="form-control"
+                          style="padding:4px 8px;font-size:11px;width:auto;display:inline-block;">
+                    <option value="pending" {{ 'selected' if a.status == 'pending' }}>Pending</option>
+                    <option value="shortlisted" {{ 'selected' if a.status == 'shortlisted' }}>Shortlist</option>
+                    <option value="hired" {{ 'selected' if a.status == 'hired' }}>Hire</option>
+                    <option value="rejected" {{ 'selected' if a.status == 'rejected' }}>Reject</option>
+                  </select>
+                </form>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% else %}
+      <div class="empty-state"><div class="empty-state-text">No applicants yet.</div></div>
+      {% endif %}
+    </div>
+
+    <div class="card mt-6">
+      <div class="card-title">Top proposals</div>
+      {% for a in applications[:3] %}
+      <div class="list-item">
+        <div class="avatar avatar-sm">{{ a.freelancer_name[0] }}</div>
+        <div class="list-item-body">
+          <div class="list-item-title">{{ a.freelancer_name }} <span class="small text-muted">&middot; &#9733; {{ a.rating }}</span></div>
+          <div class="list-item-sub">{{ a.proposal }}</div>
+        </div>
+        <div class="list-item-meta">{{ a.freelancer_rate }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </main>
+</div>
+{% endblock %}

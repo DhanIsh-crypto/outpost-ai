@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block title %}Analytics - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "provider/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Hiring Analytics</div>
+        <div class="page-subtitle">Jobs posted, applicants received, hire rate &amp; category breakdown.</div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-4 mb-6">
+      <div class="stat-card">
+        <div class="stat-label">Total Jobs</div>
+        <div class="stat-value">{{ stats.jobs_total }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Open Jobs</div>
+        <div class="stat-value">{{ stats.open_jobs }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Total Applicants</div>
+        <div class="stat-value">{{ stats.total_apps }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Shortlisted</div>
+        <div class="stat-value">{{ stats.shortlisted }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hired</div>
+        <div class="stat-value">{{ stats.hired }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Hire Rate</div>
+        <div class="stat-value">{{ stats.hire_rate }}%</div>
+        <div class="stat-delta">hired / applicants</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Apps / Job</div>
+        <div class="stat-value">{{ '%.1f' % (stats.total_apps / stats.jobs_total) if stats.jobs_total else 0 }}</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Review</div>
+        <div class="stat-value">{{ stats.total_apps - stats.hired - stats.shortlisted }}</div>
+      </div>
+    </div>
+
+    <div class="card-grid cols-2 mb-6">
+      <div class="card">
+        <div class="card-title">Applicants by category</div>
+        {% set max_cat = (by_category.values()|max) if by_category else 1 %}
+        {% if by_category %}
+        <div class="funnel">
+          {% for cat, count in by_category.items() %}
+          <div class="funnel-row">
+            <div class="funnel-label">{{ cat }}</div>
+            <div class="funnel-bar-bg">
+              <div class="funnel-bar-fill" data-fill="{{ (count / max_cat * 100) if max_cat else 0 }}"></div>
+            </div>
+            <div class="funnel-value">{{ count }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state"><div class="empty-state-text">No applicants yet.</div></div>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <div class="card-title">Jobs posted vs applicants (6 months)</div>
+        {% set max_month = (months|map(attribute='apps')|max) if months else 1 %}
+        <div class="chart-bars">
+          {% for m in months %}
+          <div class="chart-bar-wrap">
+            <div style="font-size:10px;color:var(--text-muted);">{{ m.jobs }}j</div>
+            <div class="chart-bar" data-bar="{{ m.apps }}" data-bar-max="{{ max_month if max_month else 1 }}"
+                 title="{{ m.label }}: {{ m.jobs }} jobs, {{ m.apps }} applicants"></div>
+            <div class="chart-bar-label">{{ m.label }}</div>
+          </div>
+          {% endfor %}
+        </div>
+        <div class="flex gap-4 mt-3 text-muted small">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--accent);"></span> Applicants</span>
+          <span>Number above bar = jobs posted</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Hiring funnel</div>
+      {% set max_f = stats.total_apps if stats.total_apps else 1 %}
+      <div class="funnel">
+        <div class="funnel-row">
+          <div class="funnel-label">Applicants</div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" data-fill="100"></div></div>
+          <div class="funnel-value">{{ stats.total_apps }}</div>
+        </div>
+        <div class="funnel-row">
+          <div class="funnel-label">Shortlisted</div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" data-fill="{{ (stats.shortlisted / max_f * 100) if max_f else 0 }}"></div></div>
+          <div class="funnel-value">{{ stats.shortlisted }}</div>
+        </div>
+        <div class="funnel-row">
+          <div class="funnel-label">Hired</div>
+          <div class="funnel-bar-bg"><div class="funnel-bar-fill" data-fill="{{ (stats.hired / max_f * 100) if max_f else 0 }}"></div></div>
+          <div class="funnel-value">{{ stats.hired }}</div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+{% endblock %}

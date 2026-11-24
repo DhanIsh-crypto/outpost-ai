@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+{% block title %}Client Finder - {{ APP_NAME }}{% endblock %}
+{% block body %}
+<div class="app-shell">
+  {% include "client/_sidebar.html" %}
+  <main class="main-content">
+
+    <div class="page-header">
+      <div>
+        <div class="page-title">Client Finder</div>
+        <div class="page-subtitle">Search LinkedIn for decision-makers by title, company size, industry and location.</div>
+      </div>
+    </div>
+
+    <div class="card mb-6">
+      <form method="POST" action="{{ url_for('client_finder') }}">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Job title</label>
+            <input type="text" name="title" class="form-control" placeholder="e.g. VP Marketing, Founder, CTO">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Industry</label>
+            <input type="text" name="industry" class="form-control" placeholder="e.g. SaaS, Healthcare, Robotics">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Location</label>
+            <input type="text" name="location" class="form-control" placeholder="e.g. Austin, Berlin, Remote">
+          </div>
+          <div class="form-group">
+            <label class="form-label">Company size</label>
+            <select name="company_size" class="form-control">
+              <option value="">Any</option>
+              <option>1-10</option>
+              <option>11-50</option>
+              <option>51-200</option>
+              <option>201-500</option>
+              <option>500-1000</option>
+              <option>1000+</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Keywords</label>
+          <input type="text" name="keywords" class="form-control" placeholder="e.g. growth, automation, AI, content">
+        </div>
+        <button type="submit" class="btn btn-primary">&#128269; Search LinkedIn</button>
+      </form>
+    </div>
+
+    {% if results is defined and results %}
+      <div class="card">
+        <div class="card-title">
+          {{ results|length }} results found
+          <span class="text-muted small">Click "Save lead" to add to your database &mdash; duplicates auto-detected</span>
+        </div>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Name</th><th>Title</th><th>Company</th><th>Industry</th>
+                <th>Location</th><th>Website</th><th>LinkedIn</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for r in results %}
+              <tr>
+                <td>
+                  <div class="flex items-center gap-2">
+                    <div class="avatar avatar-sm">{{ r.name[0] }}</div>
+                    <div>
+                      <div style="font-weight:600;">{{ r.name }}</div>
+                      <div class="small text-muted">{{ r.email }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td>{{ r.title }}</td>
+                <td>{{ r.company }}<br><span class="small text-muted">{{ r.company_size }}</span></td>
+                <td>{{ r.industry }}</td>
+                <td>{{ r.location }}</td>
+                <td><a href="https://{{ r.website }}" target="_blank">{{ r.website }}</a></td>
+                <td><a href="https://{{ r.linkedin }}" target="_blank">{{ r.linkedin }}</a></td>
+                <td>
+                  <form method="POST" action="{{ url_for('save_lead') }}" style="display:inline;">
+                    <input type="hidden" name="name" value="{{ r.name }}">
+                    <input type="hidden" name="title" value="{{ r.title }}">
+                    <input type="hidden" name="company" value="{{ r.company }}">
+                    <input type="hidden" name="company_size" value="{{ r.company_size }}">
+                    <input type="hidden" name="industry" value="{{ r.industry }}">
+                    <input type="hidden" name="location" value="{{ r.location }}">
+                    <input type="hidden" name="website" value="{{ r.website }}">
+                    <input type="hidden" name="linkedin" value="{{ r.linkedin }}">
+                    <input type="hidden" name="email" value="{{ r.email }}">
+                    <button type="submit" class="btn btn-primary btn-sm">+ Save</button>
+                  </form>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% elif results is defined and results|length == 0 %}
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#128269;</div>
+          <div class="empty-state-text">No matches for these filters. Try widening your search.</div>
+        </div>
+      </div>
+    {% else %}
+      <div class="card">
+        <div class="empty-state">
+          <div class="empty-state-icon">&#128269;</div>
+          <div class="empty-state-text">Run a search to see LinkedIn-style results. Try <em>title: Founder</em>, <em>industry: SaaS</em>.</div>
+        </div>
+      </div>
+    {% endif %}
+
+  </main>
+</div>
+{% endblock %}
